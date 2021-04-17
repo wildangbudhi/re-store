@@ -1,18 +1,41 @@
 version: "3.8"
 
 volumes:
-    re-store-mysqldata:
+    re-store-mysql-data:
+    re-store-minio-data:
+    re-store-rabbitmq-data:
 
 services:
     mysqldb:
         restart: always
         image: mysql
-        container_name: mysqldb
+        container_name: re-store-mysqldb
         command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4
         environment:
-            - MYSQL_DATABASE=forum_learning
+            - MYSQL_DATABASE=re_store
             - MYSQL_ROOT_PASSWORD=root
         volumes:
-            - re-store-mysqldata:/var/lib/mysql
+            - re-store-mysql-data:/var/lib/mysql
             - ./mysql/schema.sql:/docker-entrypoint-initdb.d/1.sql
+    
+    minio:
+        restart: always
+        image: minio/minio:RELEASE.2021-04-06T23-11-00Z
+        container_name: re-store-minio
+        command: server /data/minio
+        environment:
+            MINIO_ROOT_USER: re_store
+            MINIO_ROOT_PASSWORD: restore123
+        volumes: 
+            - re-store-minio-data:/data
+    
+    rabbitmq:
+        image: rabbitmq:3-management
+        container_name: re-store-rabbitmq
+        volumes:
+            - re-store-rabbitmq-data:/var/lib/rabbitmq
+        environment:
+            - RABBITMQ_ERLANG_COOKIE=123123
+            - RABBITMQ_DEFAULT_USER=re_store
+            - RABBITMQ_DEFAULT_PASS=restore123
     
